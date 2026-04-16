@@ -15,9 +15,11 @@ bool IsValidResourceName(std::string_view resourceName)
 		return false;
 	}
 
-	for (const unsigned char ch : resourceName)
+	for (const char ch : resourceName)
 	{
-		if (ch < 0x20 || ch == 0x7F || ch == '/' || ch == '\\')
+		const auto c = static_cast<unsigned char>(ch);
+
+		if (c < 0x20 || c == 0x7F || c == '/' || c == '\\')
 		{
 			return false;
 		}
@@ -72,7 +74,7 @@ public:
 
 				if (!IsValidResourceName(resourceName))
 				{
-					const auto& resourceIdentifier = resourceName.empty() ? fragRef : resourceName;
+					const std::string resourceIdentifier = resourceName.empty() ? std::string{ fragRef } : resourceName;
 					resourceList->AddError(fx::resources::ScanMessageType::Error, resourceIdentifier, "invalid_resource_name", {});
 					return pplx::task_from_result<fwRefContainer<fx::Resource>>(nullptr);
 				}
