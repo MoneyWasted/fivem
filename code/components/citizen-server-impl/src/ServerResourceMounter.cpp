@@ -74,7 +74,7 @@ public:
 
 				if (!IsValidResourceName(resourceName))
 				{
-					const std::string resourceIdentifier = resourceName.empty() ? std::string{ fragRef } : resourceName;
+					const std::string resourceIdentifier = resourceName.empty() ? uri : resourceName;
 					resourceList->AddError(fx::resources::ScanMessageType::Error, resourceIdentifier, "invalid_resource_name", {});
 					return pplx::task_from_result<fwRefContainer<fx::Resource>>(nullptr);
 				}
