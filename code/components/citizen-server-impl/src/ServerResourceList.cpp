@@ -362,6 +362,14 @@ std::string ScanMessage::Format() const
 	{
 		return fmt::sprintf("%s is a category, but has a resource manifest (if this is meant to be a resource, don't use [] around the name)", args[0]);
 	}
+	else if (identifier == "invalid_uri")
+	{
+		return fmt::sprintf("%s has an invalid resource URI: %s", resource, args[0]);
+	}
+	else if (identifier == "invalid_resource_name")
+	{
+		return fmt::sprintf("%s has an invalid resource name in its URI", resource);
+	}
 
 	return fmt::sprintf("[%s]", identifier);
 }
