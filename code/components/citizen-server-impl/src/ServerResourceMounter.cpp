@@ -59,7 +59,7 @@ public:
 
 				if (!decodedPathRef || !decodedFragmentRef)
 				{
-					resourceList->AddError(fx::resources::ScanMessageType::Error, fragRef, "invalid_uri", { "URI percent-decoding failed." });
+					resourceList->AddError(fx::resources::ScanMessageType::Error, uri, "invalid_uri", { "URI percent-decoding failed." });
 					return pplx::task_from_result<fwRefContainer<fx::Resource>>(nullptr);
 				}
 
@@ -72,7 +72,8 @@ public:
 
 				if (!IsValidResourceName(resourceName))
 				{
-					resourceList->AddError(fx::resources::ScanMessageType::Error, resourceName.empty() ? fragRef : resourceName, "invalid_resource_name", {});
+					const auto& resourceIdentifier = resourceName.empty() ? fragRef : resourceName;
+					resourceList->AddError(fx::resources::ScanMessageType::Error, resourceIdentifier, "invalid_resource_name", {});
 					return pplx::task_from_result<fwRefContainer<fx::Resource>>(nullptr);
 				}
 
