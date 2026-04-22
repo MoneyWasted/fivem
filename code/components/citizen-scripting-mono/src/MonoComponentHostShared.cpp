@@ -197,10 +197,44 @@ int MonoComponentHostShared::CoreCLRIsTrustedCode(const char* imageName)
 			if (folderPathSize == base.size()
 				&& _wcsnicmp(fullPath, base.data(), base.size()) == 0)
 			{
-				DWORD fileAttributes = GetFileAttributesW(fullPath);
+				auto hasReparsePointInPath = [&base](const wchar_t* path)
+				{
+					std::wstring currentPath(path);
 
-				// don't trust files through a reparse point path
-				if (fileAttributes == INVALID_FILE_ATTRIBUTES || (fileAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
+					// check the file and each parent directory up to base
+					while (currentPath.size() >= base.size())
+					{
+						DWORD fileAttributes = GetFileAttributesW(currentPath.c_str());
+
+						if (fileAttributes == INVALID_FILE_ATTRIBUTES)
+						{
+							return true;
+						}
+
+						if ((fileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0)
+						{
+							return true;
+						}
+
+						if (_wcsicmp(currentPath.c_str(), base.c_str()) == 0)
+						{
+							break;
+						}
+
+						auto separatorPos = currentPath.find_last_of(L"\\/");
+
+						if (separatorPos == std::wstring::npos)
+						{
+							break;
+						}
+
+						currentPath.resize(separatorPos);
+					}
+
+					return false;
+				};
+
+				if (hasReparsePointInPath(fullPath))
 				{
 					return FALSE;
 				}

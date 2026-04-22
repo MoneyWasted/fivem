@@ -396,8 +396,9 @@ result_t MonoCreateObjectInstance(const guid_t& guid, const guid_t& iid, void** 
 	}
 
 	uint32_t resultAlign = 0;
+	int resultSize = mono_class_value_size(resultClass, &resultAlign);
 
-	if (mono_class_value_size(resultClass, &resultAlign) != sizeof(void*))
+	if (resultSize <= 0 || resultSize != sizeof(void*))
 	{
 		return FX_E_NOINTERFACE;
 	}
