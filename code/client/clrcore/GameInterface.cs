@@ -11,14 +11,14 @@ namespace CitizenFX.Core
         [MethodImpl(MethodImplOptions.InternalCall)]
         private static extern void InternalFree(IntPtr ptr);
 
-		[SecurityCritical]
-		public static void FreeNativeBuffer(IntPtr ptr)
-		{
-			if (ptr != IntPtr.Zero)
-			{
-				InternalFree(ptr);
-			}
-		}
+        [SecurityCritical]
+        public static void FreeNativeBuffer(IntPtr ptr)
+        {
+            if (ptr != IntPtr.Zero)
+            {
+                InternalFree(ptr);
+            }
+        }
 
         [SecurityCritical]
         [MethodImpl(MethodImplOptions.InternalCall)]
