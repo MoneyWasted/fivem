@@ -98,7 +98,7 @@ void MonoComponentHostShared::Initialize()
 
 #ifndef IS_FXSERVER
 		mono_security_enable_core_clr();
-		mono_security_core_clr_set_options((MonoSecurityCoreCLROptions)(MONO_SECURITY_CORE_CLR_OPTIONS_RELAX_DELEGATE | MONO_SECURITY_CORE_CLR_OPTIONS_RELAX_REFLECTION));
+		mono_security_core_clr_set_options((MonoSecurityCoreCLROptions)0);
 		mono_security_set_core_clr_platform_callback(CoreCLRIsTrustedCode);
 
 		mono_profiler_install(&s_monoProfiler, ProfilerShutDown);
@@ -192,11 +192,19 @@ int MonoComponentHostShared::CoreCLRIsTrustedCode(const char* imageName)
 			std::size_t folderPathSize = filePart - fullPath;
 			std::wstring base = GetAbsoluteCitPath() + L"citizen\\clr2\\lib\\mono\\4.5\\";
 
-			// check if the path is or is a child of the /mono/4.5/ directory
-			// if this needs to be faster then we can introduce a reverse strcmp() in which we omit the above ToNarrow() by comparing char* and wchar_t* directly and do inline to_lower()
-			if (folderPathSize >= base.size()
+			// check if the path is exactly in the /mono/4.5/ directory
+			// (not in child directories, reducing trusted path surface)
+			if (folderPathSize == base.size()
 				&& _wcsnicmp(fullPath, base.data(), base.size()) == 0)
 			{
+				DWORD fileAttributes = GetFileAttributesW(fullPath);
+
+				// don't trust files through a reparse point path
+				if (fileAttributes == INVALID_FILE_ATTRIBUTES || (fileAttributes & FILE_ATTRIBUTE_REPARSE_POINT))
+				{
+					return FALSE;
+				}
+
 				// compare file name
 				for (int i = 0; i < _countof(s_platformAssemblies); ++i)
 				{

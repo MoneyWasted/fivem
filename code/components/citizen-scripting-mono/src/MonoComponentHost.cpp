@@ -34,6 +34,8 @@ static inline void WaitForMono()
 #include <mono/jit/jit.h>
 #include <mono/utils/mono-logger.h>
 #include <mono/metadata/assembly.h>
+#include <mono/metadata/appdomain.h>
+#include <mono/metadata/class.h>
 #include <mono/metadata/debug-helpers.h>
 #include <mono/metadata/threads.h>
 
@@ -273,7 +275,7 @@ static void InitMono()
 	g_rootDomain = mono_get_root_domain();
 
 	mono_add_internal_call("CitizenFX.Core.GameInterface::PrintLog", reinterpret_cast<void*>(GI_PrintLogCall));
-	mono_add_internal_call("CitizenFX.Core.GameInterface::fwFree", reinterpret_cast<void*>(fwFree));
+	mono_add_internal_call("CitizenFX.Core.GameInterface::InternalFree", reinterpret_cast<void*>(fwFree));
 
 #ifndef IS_FXSERVER
 	mono_add_internal_call("CitizenFX.Core.GameInterface::TickInDomain", reinterpret_cast<void*>(GI_TickInDomain));
@@ -381,9 +383,23 @@ result_t MonoCreateObjectInstance(const guid_t& guid, const guid_t& iid, void** 
 
 	auto retval = mono_runtime_invoke(g_createObjectMethod, nullptr, args, &exc);
 
-	if (exc)
+	if (exc || !retval)
 	{
         return FX_E_NOINTERFACE;
+	}
+
+	auto resultClass = mono_object_get_class(retval);
+
+	if (!resultClass || resultClass != mono_get_intptr_class())
+	{
+		return FX_E_NOINTERFACE;
+	}
+
+	uint32_t resultAlign = 0;
+
+	if (mono_class_value_size(resultClass, &resultAlign) != sizeof(void*))
+	{
+		return FX_E_NOINTERFACE;
 	}
 
 	*objectRef = *(void**)(mono_object_unbox(retval));

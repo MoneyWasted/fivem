@@ -468,7 +468,7 @@ namespace CitizenFX.Core
 			var re = ScriptHost.CanonicalizeRef(refId, ms_instanceId);
 			var str = Marshal.PtrToStringAnsi(re);
 
-			GameInterface.fwFree(re);
+			GameInterface.FreeNativeBuffer(re);
 
 			return str;
 		}
